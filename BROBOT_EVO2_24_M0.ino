@@ -50,6 +50,9 @@
 // include library for led eyes 
 #include "LedControl.h"
 
+#include <avdweb_VirtualDelay.h>
+VirtualDelay singleDelay; // default = millis
+
 // Uncomment this lines to connect to an external Wifi router (join an existing Wifi network)
 //#define EXTERNAL_WIFI
 //#define WIFI_SSID "YOUR_WIFI"
@@ -59,7 +62,7 @@
 
 #define TELEMETRY "192.168.4.2" // Default telemetry server (first client) port 2223
 
-// NORMAL MODE PARAMETERS (MAXIMUN SETTINGS)
+// NORMAL MODE PARAMETERS (MAXIMUN SETTINGS)o
 #define MAX_THROTTLE 550
 #define MAX_STEERING 140
 #define MAX_TARGET_ANGLE 14
@@ -217,12 +220,13 @@ Servo servo1;
 Servo servo2;
 
   /* here is the data for the characters */
-  byte auge[8]={B00000000,B00111100,B01000010,B10011001,B10011001,B01000010,B00111100,B00000000 };
-  byte auge_rechts[8]={B00000000,B00111100,B01011010,B10011001,B10000001,B01000010,B00111100,B00000000 };
-  byte auge_links[8]={B00000000,B00111100,B01000010,B10000001,B10011001,B01011010,B00111100,B00000000 };
-  byte auge_oben[8]={B00000000,B00111100,B01000010,B10110001,B10110001,B01000010,B00111100,B00000000 };
-  byte auge_unten[8]={B00000000,B00111100,B01000010,B10001101,B10001101,B01000010,B00111100,B00000000 };
-  byte auge_zu[8]={B00000000,B00111000,B01001000,B10001000,B10001000,B01001000,B00111000,B00000000 };
+  byte auge[8]={B00000000,B11111111,B11111111,B11000111,B11000111,B11111111,B11111111,B00000000 };
+  byte auge_rechts[8]={B00000000,B11000111,B11000111,B11111111,B11111111,B11111111,B11111111,B00000000 };
+  byte auge_links[8]={B00000000,B11111111,B11111111,B11111111,B11111111,B11000111,B11000111,B00000000 };
+  byte auge_oben[8]={B00000000,B11111111,B11111111,B00011111,B00011111,B11111111,B11111111,B00000000 };
+  byte auge_unten[8]={B00000000,B11111111,B11111111,B11111000,B11111000,B11111111,B11111111,B00000000 };
+  byte auge_zu[8]={B00000000,B00010000,B00010000,B00010000,B00010000,B00010000,B00010000,B00000000 };
+  byte auge_schock[8]={B11111111,B10000001,B10000001,B10000001,B10000001,B10000001,B10000001,B11111111 };
 
 void lookLeft() {
   for(int row=0;row<8;row++) {
@@ -651,6 +655,8 @@ void loop()
   // Medium loop 7.5Hz
   if (loop_counter >= 15)
   {
+    singleDelay.start(10000);
+    
     loop_counter = 0;
     // Telemetry here?
 #if TELEMETRY_ANGLE==1
@@ -667,8 +673,8 @@ void loop()
 
   } // End of medium loop
   else if (slow_loop_counter >= 100) // 1Hz
-  {
-
+  {     
+   
       if (steering > 0) {
         lookRight();
       }
@@ -677,7 +683,8 @@ void loop()
       }
       else {
         if (throttle == 0) {
-          eyesClosed();
+          lookStraight();
+          if(singleDelay.elapsed()) eyesClosed();
         }
         else {
           lookStraight();
